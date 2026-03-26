@@ -7,8 +7,7 @@ from chains.prompt import SYSTEM_PROMPT
 from utils.memory import get_history
 
 
-def build_rag_chain(retriever, llm):
-
+def build_rag_chain(retriever, llm, system_prompt=SYSTEM_PROMPT):
     def build_context(question: str):
         docs = retriever.invoke(question)
         return "\n".join(doc.page_content for doc in docs)
@@ -18,11 +17,11 @@ def build_rag_chain(retriever, llm):
             return "No previous conversation."
         return "\n".join(f"{m.type.capitalize()}: {m.content}" for m in message)
     
-    prompt = ChatPromptTemplate.from_template(SYSTEM_PROMPT)
+    prompt = ChatPromptTemplate.from_template(system_prompt)
     
     base_chain = (
         {
-            "question": RunnableLambda(lambda x:x["question"]),
+            "question": RunnableLambda(lambda x: x["question"]),
             "context": RunnableLambda(lambda x: build_context(x["question"])),
             "history": RunnableLambda(lambda x: format_history(x["history"]))
         }
